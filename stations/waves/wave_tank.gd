@@ -164,7 +164,7 @@ func _update_surface() -> void:
 	if not _water_material:
 		return
 	_water_material.set_shader_parameter("k", TAU / Wave.wavelength(frequency))
-	_water_material.set_shader_parameter("omega", TAU * frequency)
+	_water_material.set_shader_parameter("omega", TAU * minf(frequency * 0.1, 0.8))
 	_water_material.set_shader_parameter("two", 1.0 if two_sources else 0.0)
 	_water_material.set_shader_parameter("t", _clock)
 	if _source_two:

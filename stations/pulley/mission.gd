@@ -348,7 +348,7 @@ func _request_exit() -> void:
 
 func _update_interface() -> void:
 	var labels := ["KRİZ", "SINA", "TEŞHİS", "DÜZELT", "TOPARLA", "MÜHÜR", "HAK BİTTİ"]
-	var display_step := min(_phase, Phase.SEAL) + 1
+	var display_step := mini(_phase, Phase.SEAL) + 1
 	_stage_label.text = "ADIM %d / 6  ·  %s" % [display_step, labels[_phase]]
 	_directive.text = _phase_directive()
 	_fault_label.text = "%s\n%s" % ["DÜZELTİLDİ" if _calibrated else "BOZUK AYAR", "Yükü taşıyan ip kolu: %d" % _support_count if _calibrated else "Hareketli makara yükü, ip ucuyla aynı yolda taşıyor."]

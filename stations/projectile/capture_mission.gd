@@ -1,6 +1,6 @@
 extends SceneTree
 
-const SCENE := "res://stations/projectile/mission.tscn"
+const SCENE := "res://stations/projectile/lab.tscn"
 const OUT := "res://docs/review/"
 
 func _initialize() -> void:

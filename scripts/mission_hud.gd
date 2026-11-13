@@ -43,7 +43,8 @@ func _ready() -> void:
 	directive.add_theme_constant_override("shadow_offset_x", 0)
 	directive.add_theme_constant_override("shadow_offset_y", 2)
 	directive.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	directive.position = Vector2(28, 44)
+	directive.position = Vector2(28, 48)
+	directive.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(directive)
 
 	counter = Label.new()
@@ -58,6 +59,7 @@ func _ready() -> void:
 	toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	toast.modulate.a = 0.0
 	toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	toast.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var toast_box := StyleBoxFlat.new()
 	toast_box.bg_color = Color(BG, 0.88)
 	toast_box.border_color = Color("#41627f")
@@ -72,7 +74,7 @@ func _ready() -> void:
 
 	tools = HBoxContainer.new()
 	tools.add_theme_constant_override("separation", 10)
-	tools.alignment = BoxContainer.ALIGNMENT_CENTER
+	tools.alignment = BoxContainer.ALIGNMENT_BEGIN
 	add_child(tools)
 
 	action = Button.new()
@@ -92,13 +94,14 @@ func _ready() -> void:
 	add_child(pause)
 
 	back = Button.new()
-	back.text = "← Merkez"
+	back.text = "Merkeze dön"
 	back.tooltip_text = "Kontrol merkezine dön (Esc)"
 	back.pressed.connect(func() -> void: back_pressed.emit())
 	add_child(back)
 
 	info_button = Button.new()
-	info_button.text = "i"
+	info_button.text = "Bilgi"
+	info_button.tooltip_text = "Düzeneğin açıklaması"
 	info_button.custom_minimum_size = Vector2(36, 36)
 	info_button.pressed.connect(_toggle_info)
 	add_child(info_button)
@@ -128,7 +131,13 @@ func _process(_delta: float) -> void:
 		pause.position.x = skip.position.x - pause.size.x - 8.0
 	info_button.position = Vector2(right - info_button.size.x - (skip.size.x + 8.0 if skip.visible else 0.0) - (pause.size.x + 8.0 if pause.visible else 0.0) - 8.0, 22.0)
 	info_card.position = Vector2(size_now.x - info_card.size.x - 28.0, 66.0)
-	toast.position = Vector2((size_now.x - toast.size.x) * 0.5, bottom - 120.0)
+	directive.size = Vector2(maxf(size_now.x - 420.0, 300.0), 64.0)
+	var toast_width := minf(size_now.x - 80.0, 720.0)
+	toast.size.x = toast_width
+	toast.size.y = toast.get_minimum_size().y
+	toast.position = Vector2((size_now.x - toast_width) * 0.5, tools.position.y - toast.size.y - 18.0)
+	info_card.size.x = minf(size_now.x - 56.0, 380.0)
+	info_card.size.y = info_card.get_minimum_size().y
 
 
 func _draw() -> void:
@@ -168,12 +177,9 @@ func set_directive(text: String) -> void:
 
 
 func set_steps(current: int, total: int, label: String = "") -> void:
-	_steps_current = current
-	_steps_total = total
-	var dots := ""
-	for i in total:
-		dots += "●  " if i < current else "○  "
-	counter.text = ("%s  %s" % [dots.strip_edges(), label]).strip_edges()
+	_steps_current = clampi(current, 0, total)
+	_steps_total = maxi(total, 0)
+	counter.text = "%d / %d   %s" % [mini(current + 1, total), total, label.capitalize()]
 
 
 func set_action(text: String, enabled: bool = true) -> void:

@@ -27,6 +27,10 @@ const CATALOG: Array[MissionDefinition] = [
 	preload("res://stations/bridge/mission.tres"),
 	preload("res://stations/prism/mission.tres"),
 	preload("res://stations/free_fall/mission.tres"),
+	# Sınıflar keşfi; sınav sırası korunur.
+	preload("res://stations/newton/mission.tres"),
+	preload("res://stations/projectile/mission.tres"),
+	preload("res://stations/collision/mission.tres"),
 	preload("res://stations/photoelectric/mission.tres"),
 	preload("res://stations/waves/mission.tres"),
 	preload("res://stations/indicator/mission.tres"),
@@ -67,21 +71,21 @@ const ICONS := {
 	"İngilizce": "ydt", "Fen Bilimleri": "measurement",
 }
 
-@onready var hub: Control = %Hub
-@onready var grade_filter: OptionButton = %GradeFilter
-@onready var field_filter: OptionButton = %FieldFilter
-@onready var mission_list: ItemList = %MissionList
-@onready var mission_title: Label = %MissionTitle
-@onready var mission_status: Label = %MissionStatus
-@onready var mission_curriculum: Label = %MissionCurriculum
-@onready var start_mission: Button = %StartMission
-@onready var progress: Label = %Progress
-@onready var play_screen: Control = %PlayScreen
-@onready var play_title: Label = %PlayTitle
-@onready var play_status: Label = %PlayStatus
-@onready var mission_host: Control = %MissionHost
-@onready var missions_layout: BoxContainer = %Missions
-@onready var route_purpose: Label = %RoutePurpose
+@onready var hub: Control = _scene_node(&"Hub")
+@onready var grade_filter: OptionButton = _scene_node(&"GradeFilter")
+@onready var field_filter: OptionButton = _scene_node(&"FieldFilter")
+@onready var mission_list: ItemList = _scene_node(&"MissionList")
+@onready var mission_title: Label = _scene_node(&"MissionTitle")
+@onready var mission_status: Label = _scene_node(&"MissionStatus")
+@onready var mission_curriculum: Label = _scene_node(&"MissionCurriculum")
+@onready var start_mission: Button = _scene_node(&"StartMission")
+@onready var progress: Label = _scene_node(&"Progress")
+@onready var play_screen: Control = _scene_node(&"PlayScreen")
+@onready var play_title: Label = _scene_node(&"PlayTitle")
+@onready var play_status: Label = _scene_node(&"PlayStatus")
+@onready var mission_host: Control = _scene_node(&"MissionHost")
+@onready var missions_layout: BoxContainer = _scene_node(&"Missions")
+@onready var route_purpose: Label = _scene_node(&"RoutePurpose")
 
 var active_route: StringName = &"tyt"
 var active_mode: StringName = &"yks"
@@ -111,12 +115,12 @@ func _ready() -> void:
 	active_route = selected_yks_route
 	active_field = Campaign.selected_field
 	field_filter.select([&"all", &"sayisal", &"ea", &"sozel"].find(active_field))
-	%Class.pressed.connect(_select_route.bind(&"class"))
-	%LGS.pressed.connect(_select_route.bind(&"lgs"))
-	%YKS.pressed.connect(_select_yks)
-	%TYT.pressed.connect(_select_route.bind(&"tyt"))
-	%AYT.pressed.connect(_select_route.bind(&"ayt"))
-	%YDT.pressed.connect(_select_route.bind(&"ydt"))
+	_scene_node(&"Class").pressed.connect(_select_route.bind(&"class"))
+	_scene_node(&"LGS").pressed.connect(_select_route.bind(&"lgs"))
+	_scene_node(&"YKS").pressed.connect(_select_yks)
+	_scene_node(&"TYT").pressed.connect(_select_route.bind(&"tyt"))
+	_scene_node(&"AYT").pressed.connect(_select_route.bind(&"ayt"))
+	_scene_node(&"YDT").pressed.connect(_select_route.bind(&"ydt"))
 	grade_filter.item_selected.connect(_on_grade_selected)
 	field_filter.item_selected.connect(_on_field_selected)
 	get_viewport().size_changed.connect(_update_responsive_layout)
@@ -124,9 +128,9 @@ func _ready() -> void:
 	mission_list.item_selected.connect(_select_mission)
 	mission_list.item_activated.connect(_activate_mission)
 	start_mission.pressed.connect(_start_mission)
-	%Info.pressed.connect(_toggle_curriculum)
-	%Back.pressed.connect(_return_to_hub)
-	%Reset.pressed.connect(_reset_mission)
+	_scene_node(&"Info").pressed.connect(_toggle_curriculum)
+	_scene_node(&"Back").pressed.connect(_return_to_hub)
+	_scene_node(&"Reset").pressed.connect(_reset_mission)
 	Campaign.state_changed.connect(_refresh_list)
 	_refresh_route_controls()
 	_refresh_list()
@@ -155,7 +159,7 @@ func _play_intro() -> void:
 	var intro = INTRO.instantiate()
 	intro.configure_route(active_route)
 	_set_hub_visible(false)
-	%HubScrim.hide()
+	_scene_node(&"HubScrim").hide()
 	add_child(intro)
 	intro.alarm_changed.connect(_set_world_alarm)
 	intro.finished.connect(_finish_intro.bind(intro), CONNECT_ONE_SHOT)
@@ -165,7 +169,7 @@ func _play_intro() -> void:
 func _finish_intro(intro: Control) -> void:
 	intro.queue_free()
 	Campaign.set_story_flag(&"intro_seen")
-	%HubScrim.show()
+	_scene_node(&"HubScrim").show()
 	_set_hub_visible(true)
 	_resume_campaign_story()
 
@@ -186,8 +190,8 @@ func _resume_campaign_story() -> void:
 
 
 func _set_world_alarm(strength: float) -> void:
-	if %Observatory.has_method("set_alarm"):
-		%Observatory.call("set_alarm", strength)
+	if _scene_node(&"Observatory").has_method("set_alarm"):
+		_scene_node(&"Observatory").call("set_alarm", strength)
 
 
 func _select_yks() -> void:
@@ -210,13 +214,13 @@ func _select_route(route: StringName) -> void:
 
 
 func _refresh_route_controls() -> void:
-	%Class.set_pressed_no_signal(active_mode == &"class")
-	%LGS.set_pressed_no_signal(active_mode == &"lgs")
-	%YKS.set_pressed_no_signal(active_mode == &"yks")
-	%TYT.set_pressed_no_signal(selected_yks_route == &"tyt")
-	%AYT.set_pressed_no_signal(selected_yks_route == &"ayt")
-	%YDT.set_pressed_no_signal(selected_yks_route == &"ydt")
-	%YksRoutes.visible = active_mode == &"yks"
+	_scene_node(&"Class").set_pressed_no_signal(active_mode == &"class")
+	_scene_node(&"LGS").set_pressed_no_signal(active_mode == &"lgs")
+	_scene_node(&"YKS").set_pressed_no_signal(active_mode == &"yks")
+	_scene_node(&"TYT").set_pressed_no_signal(selected_yks_route == &"tyt")
+	_scene_node(&"AYT").set_pressed_no_signal(selected_yks_route == &"ayt")
+	_scene_node(&"YDT").set_pressed_no_signal(selected_yks_route == &"ydt")
+	_scene_node(&"YksRoutes").visible = active_mode == &"yks"
 	grade_filter.visible = active_mode == &"class"
 	field_filter.visible = active_route == &"ayt"
 
@@ -312,12 +316,12 @@ func _refresh_list() -> void:
 		scope = "%d. SINIF" % selected_grade if selected_grade > 0 else "TÜM SINIFLAR"
 	progress.text = "%s  ·  %d / %d ONARILDI" % [scope, completed_count, progress_total]
 	if active_mode == &"yks":
-		%Subtitle.text = "YKS KAMPANYASI"
-		%Title.text = "Bilginin Kırılması"
+		_scene_node(&"Subtitle").text = "YKS KAMPANYASI"
+		_scene_node(&"Title").text = "Bilginin Kırılması"
 		route_purpose.text = _route_purpose(active_route)
 	else:
-		%Subtitle.text = "KONTROL MERKEZİ  ·  %s" % ("LGS" if active_mode == &"lgs" else "SINIF KEŞFİ")
-		%Title.text = "Yanlış Dünya"
+		_scene_node(&"Subtitle").text = "KONTROL MERKEZİ  ·  %s" % ("LGS" if active_mode == &"lgs" else "SINIF KEŞFİ")
+		_scene_node(&"Title").text = "Yanlış Dünya"
 		route_purpose.text = "Görevleri seç, düzeneği çalıştır ve her onarımla gözlemevini geri kazan."
 
 
@@ -363,7 +367,7 @@ func _clear_selection() -> void:
 	mission_curriculum.text = ""
 	mission_curriculum.hide()
 	start_mission.disabled = true
-	%Info.disabled = true
+	_scene_node(&"Info").disabled = true
 
 
 func _select_mission(index: int) -> void:
@@ -391,8 +395,8 @@ func _select_mission(index: int) -> void:
 		var yks_definition := selected_mission as YksMissionDefinition
 		mission_curriculum.text += "\nHedef · %s\nKaynak · %s" % [yks_definition.learning_target, yks_definition.source_note]
 	mission_curriculum.visible = false
-	%Info.text = "ⓘ Bilgi"
-	%Info.disabled = false
+	_scene_node(&"Info").text = "ⓘ Bilgi"
+	_scene_node(&"Info").disabled = false
 
 
 func _mission_display_title(mission: MissionDefinition) -> String:
@@ -417,7 +421,7 @@ func _toggle_curriculum() -> void:
 	if selected_mission == null:
 		return
 	mission_curriculum.visible = not mission_curriculum.visible
-	%Info.text = "× Kapat" if mission_curriculum.visible else "ⓘ Bilgi"
+	_scene_node(&"Info").text = "× Kapat" if mission_curriculum.visible else "ⓘ Bilgi"
 
 
 func _activate_mission(index: int) -> void:
@@ -445,8 +449,8 @@ func _start_mission() -> void:
 	play_title.text = _mission_display_title(selected_mission)
 	play_status.text = ""
 	_set_hub_visible(false)
-	%HubScrim.hide()
-	%WorldView.hide()
+	_scene_node(&"HubScrim").hide()
+	_scene_node(&"WorldView").hide()
 	play_screen.show()
 	mission_host.add_child(active_mission)
 	active_mission.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -653,38 +657,38 @@ func _field_label(field: StringName) -> String:
 
 func _active_route_button() -> Button:
 	if active_mode == &"class":
-		return %Class
+		return _scene_node(&"Class")
 	if active_mode == &"lgs":
-		return %LGS
+		return _scene_node(&"LGS")
 	match selected_yks_route:
-		&"ayt": return %AYT
-		&"ydt": return %YDT
-	return %TYT
+		&"ayt": return _scene_node(&"AYT")
+		&"ydt": return _scene_node(&"YDT")
+	return _scene_node(&"TYT")
 
 
 func _update_responsive_layout() -> void:
 	var narrow := get_viewport_rect().size.x < 820.0
 	var compact := get_viewport_rect().size.x < 340.0
 	missions_layout.vertical = narrow
-	%Routes.vertical = false
-	%YksRoutes.vertical = false
-	%Class.text = "Sınıf" if compact else "Sınıflar"
-	%YKS.text = "YKS" if compact else "YKS Kampanyası"
-	%YDT.text = "YDT" if compact else "YDT · İsteğe bağlı"
-	%Margin.add_theme_constant_override("margin_left", 16 if compact else 26 if narrow else 46)
-	%Margin.add_theme_constant_override("margin_right", 16 if compact else 26 if narrow else 46)
-	%Margin.add_theme_constant_override("margin_top", 18 if compact else 26 if narrow else 38)
-	%Margin.add_theme_constant_override("margin_bottom", 16 if compact else 24 if narrow else 34)
+	_scene_node(&"Routes").vertical = false
+	_scene_node(&"YksRoutes").vertical = false
+	_scene_node(&"Class").text = "Sınıf" if compact else "Sınıflar"
+	_scene_node(&"YKS").text = "YKS" if compact else "YKS Kampanyası"
+	_scene_node(&"YDT").text = "YDT" if compact else "YDT · İsteğe bağlı"
+	_scene_node(&"Margin").add_theme_constant_override("margin_left", 16 if compact else 26 if narrow else 46)
+	_scene_node(&"Margin").add_theme_constant_override("margin_right", 16 if compact else 26 if narrow else 46)
+	_scene_node(&"Margin").add_theme_constant_override("margin_top", 18 if compact else 26 if narrow else 38)
+	_scene_node(&"Margin").add_theme_constant_override("margin_bottom", 16 if compact else 24 if narrow else 34)
 	var horizontal_margin := 32.0 if compact else 52.0 if narrow else 92.0
 	hub.custom_minimum_size.x = maxf(220.0, minf(680.0, get_viewport_rect().size.x - horizontal_margin))
 	hub.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	%Title.add_theme_font_size_override("font_size", 32 if compact else 38 if narrow else 46)
+	_scene_node(&"Title").add_theme_font_size_override("font_size", 32 if compact else 38 if narrow else 46)
 	mission_list.custom_minimum_size = Vector2(0, 190 if narrow else 280)
 	mission_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mission_list.size_flags_vertical = Control.SIZE_EXPAND_FILL if not narrow else Control.SIZE_SHRINK_BEGIN
-	%DetailDock.custom_minimum_size = Vector2(0, 0) if narrow else Vector2(286, 0)
-	%DetailDock.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	%DetailDock.size_flags_vertical = Control.SIZE_SHRINK_BEGIN if narrow else Control.SIZE_EXPAND_FILL
+	_scene_node(&"DetailDock").custom_minimum_size = Vector2(0, 0) if narrow else Vector2(286, 0)
+	_scene_node(&"DetailDock").size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scene_node(&"DetailDock").size_flags_vertical = Control.SIZE_SHRINK_BEGIN if narrow else Control.SIZE_EXPAND_FILL
 	if _story_overlay != null:
 		call_deferred("_position_transmission", _story_overlay)
 	_refresh_mission_row_labels()
@@ -741,8 +745,8 @@ func _set_hub_visible(visible: bool) -> void:
 
 
 func _set_life_protocol(enabled: bool) -> void:
-	if %Observatory.has_method("set_life_protocol"):
-		%Observatory.call("set_life_protocol", enabled)
+	if _scene_node(&"Observatory").has_method("set_life_protocol"):
+		_scene_node(&"Observatory").call("set_life_protocol", enabled)
 
 
 func _mission_by_id(mission_id: StringName) -> MissionDefinition:
@@ -829,19 +833,19 @@ func _position_transmission(card: Control) -> void:
 
 
 func _update_observatory_progress() -> void:
-	if %Observatory.has_method("set_operational_count"):
+	if _scene_node(&"Observatory").has_method("set_operational_count"):
 		var count := 0
 		for mission in CATALOG:
 			if Campaign.is_completed(mission.id):
 				count += 1
-		%Observatory.call("set_operational_count", count)
+		_scene_node(&"Observatory").call("set_operational_count", count)
 
 
 func _return_to_hub() -> void:
 	_remove_active_mission()
 	play_screen.hide()
-	%WorldView.show()
-	%HubScrim.show()
+	_scene_node(&"WorldView").show()
+	_scene_node(&"HubScrim").show()
 	_set_hub_visible(true)
 	_refresh_list()
 	mission_list.grab_focus()
@@ -853,3 +857,8 @@ func _remove_active_mission() -> void:
 		active_mission.queue_free()
 		active_mission = null
 		active_mission_definition = null
+
+
+func _scene_node(node_name: StringName) -> Node:
+	# Reparenting Hub into the responsive scroll area removes unique-owner lookup.
+	return find_child(String(node_name), true, false)

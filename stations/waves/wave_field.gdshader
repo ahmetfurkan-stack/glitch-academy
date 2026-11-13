@@ -26,15 +26,11 @@ void vertex() {
 
 void fragment() {
 	float normalized_height = wave_value / (1.0 + two);
-	float crest = pow(max(normalized_height, 0.0), 1.55);
-	float trough = pow(max(-normalized_height, 0.0), 1.55);
+	// One quiet water tone; height varies brightness, the node line marks cancellation.
 	float nodes = (1.0 - smoothstep(0.035, 0.16, nodal_envelope)) * two;
-	vec3 base = vec3(0.045, 0.14, 0.20);
-	vec3 teal = vec3(0.09, 0.72, 0.69);
-	vec3 amber = vec3(0.98, 0.58, 0.22);
-	vec3 node_line = vec3(0.74, 0.92, 0.92);
-	ALBEDO = base + teal * crest * 0.92 + amber * trough * 0.68 + node_line * nodes * 0.16;
-	EMISSION = teal * crest * 0.38 + amber * trough * 0.3 + node_line * nodes * 0.045;
-	METALLIC = 0.06;
-	ROUGHNESS = 0.32;
+	vec3 water = vec3(0.12, 0.25, 0.29);
+	ALBEDO = water * (1.0 + 0.22 * normalized_height) + vec3(0.025) * nodes;
+	EMISSION = vec3(0.0);
+	METALLIC = 0.02;
+	ROUGHNESS = 0.78;
 }

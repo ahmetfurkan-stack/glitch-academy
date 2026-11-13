@@ -4,6 +4,10 @@ extends Node
 ## SectionLabel, MutedLabel, GlassPanel, ConsolePanel.
 
 const FONT = preload("res://assets/fonts/IBMPlexSans.ttf")
+const FONT_CONDENSED = FONT
+const FAINT := Color("#8fa6b3")
+const ACCENT_DIM := Color("#38786f")
+const PANEL_SUNKEN := Color("#0a121d")
 const DISPLAY_FONT = preload("res://assets/fonts/SpaceGrotesk.ttf")
 
 const BG := Color("#070b12")

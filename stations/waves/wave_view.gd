@@ -78,7 +78,7 @@ func _font() -> Font:
 
 
 func _t(position: Vector2, text: String, size_px: float, color: Color, align: int = HORIZONTAL_ALIGNMENT_LEFT, width: float = -1.0) -> void:
-	_overlay.draw_string(_font(), position, text, align, width, int(size_px), color)
+	_overlay.draw_string(_font(), position, text, align, width, maxi(int(size_px), 16), color)
 
 
 func _draw_overlay() -> void:
@@ -86,7 +86,7 @@ func _draw_overlay() -> void:
 	var canvas := _overlay
 	canvas.draw_rect(Rect2(_p(AREA.position.x, AREA.position.y), AREA.size * s), Color(1, 1, 1, 0.18), false, 1.5)
 	_t(_p(58.0, 150.0), "3D DALGA HAVUZU  ·  ÜSTTEN / EĞİK GÖZLEM", 16.0 * s, ACCENT)
-	_t(_p(58.0, 184.0), "Turkuaz: tepe   ·   Amber: çukur   ·   İnce çizgi: düğüm", 14.0 * s, MUTED)
+	_t(_p(58.0, 184.0), "Açık: tepe   Koyu: çukur   İnce çizgi: düğüm", 14.0 * s, MUTED)
 	var amp_a := Wave.amplitude(Wave.SENSOR_A, frequency, two_sources)
 	var amp_b := Wave.amplitude(Wave.SENSOR_B, frequency, two_sources)
 	_draw_board(s, amp_a, amp_b)
@@ -112,7 +112,7 @@ func _draw_board(s: float, amp_a: float, amp_b: float) -> void:
 	_draw_bar(x, y, s, "B · VERİ ALICISI", amp_b, ACCENT if amp_b >= 1.7 else WARM, 1.7, false)
 	if faulty_display:
 		y += 120.0
-		_t(_p(x, y), "CİHAZ BEKLENTİSİ  her noktada 2,0", 18.0 * s, WARM)
+		_t(_p(x, y), "MERİDYEN tahmini: her noktada 2,0", 18.0 * s, WARM)
 
 
 func _draw_bar(x: float, y: float, s: float, title: String, value: float, colour: Color, limit: float, overload: bool) -> void:

@@ -72,7 +72,7 @@ const PACK := {
 		"brief":"Yardım istasyonundan üç kısa mesaj geldi. İsteği anla, uygun yanıtı seç ve iletişim dizisini tamamla.",
 		"steps":[
 			{"label":"MESSAGE 01  /  need ve iletişim amacı", "record":"TRANSCRIPT 01  ·  “We need clean water.”  /  yardım istasyonundan kısa mesaj", "options":["They need clean water.", "They need a new map.", "They are closing the station."], "answer":0, "feedback":"“We need” bir ihtiyacı bildirir; ekip temiz su istiyor."},
-			{"label":"MESSAGE 02  /  not ve durum bilgisi", "record":"CONTEXT 02  ·  Nehir yolu kapalı; ekip köprü kontrol noktasında bekliyor.", "options":["Köprü güvenli.", "Köprü güvenli değil.", "Köprü yeniden açıldı."], "answer":1, "feedback":"“Not safe” olumsuzluk bildirir: köprü güvenli değil."},
+			{"label":"MESSAGE 02  /  not ve durum bilgisi", "record":"Telsiz: “The bridge is not safe. Please wait.” Ekip köprü kontrol noktasında bekliyor.", "options":["Köprü güvenli.", "Köprü güvenli değil.", "Köprü yeniden açıldı."], "answer":1, "feedback":"“Not safe” olumsuzluk bildirir: köprü güvenli değil."},
 			{"label":"TELSİZİ ONAR  /  Give a clear instruction", "options":["Please wait at the station.", "The station is a blue color.", "I am not a bridge."], "answer":0, "feedback":"Kısa ve anlaşılır yönerge gönderildi. Yardım hattı bağlandı."}],
 		"rescue":{"label":"NEW MESSAGE: “Could you send a map? The river route is blocked.” What should the team send?", "options":["A map.", "Clean water.", "A bridge."], "answer":0, "feedback":"Mesajın amacı ve bağlamı birlikte okundu; doğru malzeme ekibe ulaştı."}},
 	"religion": {
@@ -94,6 +94,8 @@ var action_buttons: VBoxContainer
 var progress_label: Label
 var diorama
 var phase := 0
+var _completion_emitted := false
+var _selected_evidence := -1
 var attempts := 0
 var fault_visible := false
 var phase_segments: HBoxContainer
@@ -123,7 +125,7 @@ func _build_ui() -> void:
 	shell.offset_top = 18 if mission_id == &"bridge" else 26
 	shell.offset_right = -36
 	shell.offset_bottom = -18 if mission_id == &"bridge" else -26
-	shell.add_theme_constant_override("separation", 10 if mission_id == &"bridge" else 16)
+	shell.add_theme_constant_override("separation", 10)
 	add_child(shell)
 	var header := HBoxContainer.new()
 	shell.add_child(header)
@@ -154,7 +156,7 @@ func _build_ui() -> void:
 	var brief := Label.new()
 	brief.text = data.brief
 	brief.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	brief.custom_minimum_size.y = 48
+	brief.hide()
 	brief.add_theme_color_override("font_color", UITheme.MUTED)
 	shell.add_child(brief)
 	var stage_card := PanelContainer.new()
@@ -164,7 +166,7 @@ func _build_ui() -> void:
 	panel_style.border_color = accent.darkened(0.35)
 	panel_style.set_border_width_all(1)
 	panel_style.set_corner_radius_all(10)
-	var card_padding := 14 if mission_id == &"bridge" else 24
+	var card_padding := 14
 	panel_style.content_margin_left = card_padding
 	panel_style.content_margin_top = card_padding
 	panel_style.content_margin_right = card_padding
@@ -176,6 +178,7 @@ func _build_ui() -> void:
 	stage_card.add_child(content)
 	var visual_row := HBoxContainer.new()
 	visual_row.add_theme_constant_override("separation", 18)
+	visual_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_child(visual_row)
 	diorama = load("res://scenes/lgs_diorama.tscn").instantiate()
 	diorama.mission_id = mission_id
@@ -183,14 +186,14 @@ func _build_ui() -> void:
 		diorama.custom_minimum_size = Vector2(680, 398)
 		diorama.proof_animation_finished.connect(_on_proof_animation_finished)
 	else:
-		diorama.custom_minimum_size = Vector2(300, 176)
-	diorama.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		diorama.custom_minimum_size = Vector2(650, 390)
+	diorama.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	visual_row.add_child(diorama)
 	var right := VBoxContainer.new()
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	visual_row.add_child(right)
 	var step_name := Label.new()
-	step_name.text = "AKTİF İŞLEM"
+	step_name.text = "Onarım tezgâhı"
 	step_name.theme_type_variation = "KickerLabel"
 	step_name.add_theme_color_override("font_color", accent)
 	right.add_child(step_name)
@@ -200,21 +203,16 @@ func _build_ui() -> void:
 	right.add_child(action_label)
 	action_buttons = VBoxContainer.new()
 	action_buttons.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	action_buttons.add_theme_constant_override("separation", 9)
-	if mission_id == &"bridge":
-		right.add_child(action_buttons)
-	else:
-		content.add_child(action_buttons)
+	action_buttons.add_theme_constant_override("separation", 6)
+	right.add_child(action_buttons)
 	feedback = Label.new()
 	feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	feedback.custom_minimum_size.y = 32
 	feedback.add_theme_color_override("font_color", accent)
-	if mission_id == &"bridge":
-		right.add_child(feedback)
-	else:
-		content.add_child(feedback)
+	right.add_child(feedback)
 	var note := Label.new()
-	note.text = "Meridyen ispatı yazarken izle; tamamlanınca hatalı satırı seç." if mission_id == &"bridge" else "Kayıtlar, yürürlükteki müfredat kavramlarıyla karşılaştırılır. Kurmaca arıza yalnızca oyundaki verileri etkiler."
+	note.text = "MERİDYEN’in bozduğu ayarı kanıtla düzelt; yeni durumda onarımı kendin uygula."
+	note.hide()
 	note.theme_type_variation = "MutedLabel"
 	note.add_theme_color_override("font_color", UITheme.FAINT)
 	shell.add_child(note)
@@ -267,7 +265,7 @@ func _show_stage() -> void:
 
 
 func _set_phase_indicator() -> void:
-	progress_label.text = "%02d / 06  ·  %s" % [phase + 1, PHASES[phase]]
+	progress_label.text = "%d / 6   %s" % [phase + 1, PHASES[phase].capitalize()]
 	for index in phase_segments.get_child_count():
 		var segment := phase_segments.get_child(index) as ColorRect
 		segment.color = UITheme.ACCENT_DIM if index < phase else UITheme.ACCENT if index == phase else UITheme.EDGE
@@ -275,15 +273,18 @@ func _set_phase_indicator() -> void:
 
 func _clear_actions() -> void:
 	for child in action_buttons.get_children():
+		action_buttons.remove_child(child)
 		child.queue_free()
+	_selected_evidence = -1
 
 
 func _add_action_button(label: String, callback: Callable) -> Button:
 	var button := Button.new()
 	button.text = label
-	button.custom_minimum_size.y = 46
+	button.custom_minimum_size.y = 40
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	button.theme_type_variation = "PrimaryButton" if label == "MÜHÜRÜ KAPAT" else "Button"
 	button.pressed.connect(callback)
 	action_buttons.add_child(button)
@@ -299,16 +300,19 @@ func _add_evidence_drop(options: Array, callback: Callable) -> void:
 	for index in options.size():
 		var card := EvidenceSource.new()
 		card.evidence_id = index
-		card.text = "KAYIT FİŞİ  ·  %s" % String(options[index])
-		card.custom_minimum_size.y = 50
+		card.text = String(options[index])
+		card.custom_minimum_size.y = 40
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		card.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		card.add_theme_constant_override("line_spacing", 2)
 		card.add_theme_color_override("font_color", UITheme.INK)
+		card.pressed.connect(func() -> void:
+			_selected_evidence = index
+			feedback.text = "Fiş seçildi; bozuk ayara uygula.")
 		action_buttons.add_child(card)
 	var zone := EvidenceDropZone.new()
-	zone.custom_minimum_size.y = 58
+	zone.custom_minimum_size.y = 44
 	zone.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var zone_style := StyleBoxFlat.new()
 	zone_style.bg_color = UITheme.PANEL_SUNKEN
@@ -321,12 +325,17 @@ func _add_evidence_drop(options: Array, callback: Callable) -> void:
 	zone_style.content_margin_bottom = 8
 	zone.add_theme_stylebox_override("panel", zone_style)
 	var zone_label := Label.new()
-	zone_label.text = "BOZUK AYAR PLAKASI  ·  KANITI BURAYA BIRAK"
+	zone_label.text = "Bozuk ayar: fişi buraya bırak"
 	zone_label.theme_type_variation = "KickerLabel"
 	zone_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	zone.add_child(zone_label)
 	zone.evidence_dropped.connect(callback)
 	action_buttons.add_child(zone)
+	_add_action_button("Seçilen kanıtı uygula", func() -> void:
+		if _selected_evidence >= 0:
+			callback.call(_selected_evidence)
+		else:
+			feedback.text = "Önce bir kanıt fişi seç.")
 
 
 func _update_status_colors() -> void:
@@ -409,7 +418,7 @@ func _on_proof_animation_finished() -> void:
 func _show_proof_diagnosis(data: Dictionary) -> void:
 	action_label.text = "Alan modelinin hangi satırı köprü açıklığını bırakıyor?"
 	feedback.text = "İspat tahtasındaki son satırı, masadaki dört alan parçasıyla karşılaştır."
-	_add_evidence_drop(data.proof_lines, _choose_proof_line)
+	_add_choice_buttons(data.proof_lines, _choose_proof_line)
 
 
 func _choose_proof_line(index: int) -> void:
@@ -468,7 +477,7 @@ func _submit_formula(entry: LineEdit, data: Dictionary) -> void:
 	if locked:
 		return
 	var submitted := _normalize_formula(entry.text)
-	if submitted != "(a+b)^2=a^2+2ab+b^2" and submitted != "a^2+2ab+b^2=(a+b)^2":
+	if submitted not in ["(a+b)^2=a^2+2ab+b^2", "a^2+2ab+b^2=(a+b)^2", "(a+b)^2=a^2+ab+ab+b^2", "(a+b)^2=b^2+2ab+a^2"]:
 		fault_visible = true
 		diorama.set_lesson_state(phase, false, true, data.faulty_line, false)
 		feedback.text = "Alan toplamı hâlâ modeli karşılamıyor; iki eş dikdörtgeni ayrı ayrı hesaba kat."
@@ -515,7 +524,7 @@ func _show_rescue(data: Dictionary) -> void:
 
 
 func _choose_rescue(choice: Variant) -> void:
-	if locked:
+	if locked or phase != 4:
 		return
 	var data: Dictionary = PACK[String(mission_id)]
 	var rescue: Dictionary = data.rescue
@@ -534,11 +543,10 @@ func _choose_rescue(choice: Variant) -> void:
 			feedback.text = "Destek yanlış haneye gitti; ihtiyaç karşılanmadı. %d hak kaldı." % (3 - attempts)
 		_update_status_colors()
 		if attempts >= 3:
-			attempts = 0
-			phase = 0
 			locked = true
+			_clear_actions()
 			feedback.text = "Haklar bitti; SAR ile kriz başlangıcına döndün."
-			_add_action_button("KRİZE SAR", _show_stage)
+			_add_action_button("Krize sar", _restart_after_failure)
 		return
 	locked = true
 	fault_visible = false
@@ -549,6 +557,9 @@ func _choose_rescue(choice: Variant) -> void:
 
 
 func _finish() -> void:
+	if phase != 5 or _completion_emitted:
+		return
+	_completion_emitted = true
 	feedback.text = "MÜHÜRLENDİ · DÜZELTME KAYDI MERKEZE GÖNDERİLDİ"
 	completed.emit()
 
@@ -560,3 +571,12 @@ func _hint(key: String, step_index: int) -> String:
 		"english":["Mesajın eylemini ve nedenini birlikte oku.", "Olumsuzluk sözcüğünün anlamı nasıl değiştirdiğini incele.", "Yanıt hem isteğe hem durum notuna uymalı."],
 		"religion":["Kaynağın tanımını senaryodaki ihtiyaçla karşılaştır.", "Örneğin yararının kime ve ne zaman ulaştığını incele.", "Kararı ihtiyaç ve insan onuru kaydıyla denetle."]}
 	return hints.get(key, ["Kaydı yeniden incele."])[step_index]
+
+
+func _restart_after_failure() -> void:
+	phase = 0
+	stage = 0
+	attempts = 0
+	fault_visible = true
+	locked = false
+	_show_stage()

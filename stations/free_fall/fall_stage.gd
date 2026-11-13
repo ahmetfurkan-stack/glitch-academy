@@ -52,6 +52,7 @@ var _flash := 0.0
 var _clock := 0.0
 var _release_countdown := -1.0
 var _pending: Array = []
+var _trial_id := 0
 var _lab: Node
 
 
@@ -115,6 +116,7 @@ func release(ids: Array) -> void:
 
 ## Sar: cisimleri bırakma anına geri götürür.
 func rewind() -> void:
+	_trial_id += 1
 	falling = false
 	_release_countdown = -1.0
 	for id in _bodies:
@@ -235,8 +237,10 @@ func _step_fall(delta: float) -> void:
 		for id in _bodies:
 			if _bodies[id]["active"]:
 				results[id] = _bodies[id]["result"]
+		var finished_trial := _trial_id
 		await get_tree().create_timer(0.7).timeout
-		landed.emit(results)
+		if finished_trial == _trial_id:
+			landed.emit(results)
 
 
 # --- Çizim -----------------------------------------------------------------------
@@ -261,7 +265,7 @@ func _font() -> Font:
 
 
 func _text(position: Vector2, text: String, font_size: float, color: Color, align: int = HORIZONTAL_ALIGNMENT_LEFT, width: float = -1.0) -> void:
-	draw_string(_font(), position, text, align, width, int(font_size), color)
+	draw_string(_font(), position, text, align, width, maxi(int(font_size), 16), color)
 
 
 func _nice_step() -> float:
@@ -324,7 +328,7 @@ func _draw_signature(factor: float) -> void:
 	if not show_expectation:
 		return
 	var rng := RandomNumberGenerator.new()
-	rng.seed = floori(_clock * 9.0)
+	rng.seed = floori(_clock * 2.0)
 	for i in 3:
 		if rng.randf() < 0.55:
 			continue
@@ -367,7 +371,7 @@ func _draw_board(factor: float) -> void:
 		row += 68.0
 	if show_expectation:
 		draw_line(_p(x, row - 28.0), _p(x + 640.0, row - 28.0), Color(WARM, 0.5), 1.0 * factor)
-		_text(_p(x, row + 6.0), "CİHAZ BEKLENTİSİ", 20.0 * factor, WARM)
+		_text(_p(x, row + 6.0), "MERİDYEN TAHMİNİ", 20.0 * factor, WARM)
 		_text(_p(x + 380.0, row + 6.0), seconds_text(EXPECTED_TIME if not door_enabled else door_time), 34.0 * factor, WARM, HORIZONTAL_ALIGNMENT_RIGHT, 260.0 * factor)
 		row += 68.0
 	if gravity_label != "":
