@@ -7,12 +7,12 @@ signal skip_pressed
 signal pause_pressed
 signal back_pressed
 
-const INK := Color("#e8f1f2")
-const MUTED := Color("#8fa6b3")
-const ACCENT := Color("#6fe3c1")
-const WARM := Color("#f2a65a")
-const DANGER := Color("#e5645a")
-const BG := Color("#070b12")
+const INK := Color("#22332f")
+const MUTED := Color("#66766d")
+const ACCENT := Color("#3b7867")
+const WARM := Color("#c88755")
+const DANGER := Color("#b85f56")
+const BG := Color("#f4f6f2")
 
 var directive: Label
 var counter: Label
@@ -37,11 +37,11 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	directive = Label.new()
-	# Yönerge bir talimat cümlesidir: gövde yazı tipi. Display yüz yalnızca kısa başlıklarda (assets/ui/VISUAL_LANGUAGE.md).
+	# Yönerge bir talimat cümlesidir: gövde yazı tipi ve yumuşak açık gölge.
 	directive.add_theme_font_size_override("font_size", 22)
-	directive.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	directive.add_theme_color_override("font_shadow_color", Color("#ffffff", 0.72))
 	directive.add_theme_constant_override("shadow_offset_x", 0)
-	directive.add_theme_constant_override("shadow_offset_y", 2)
+	directive.add_theme_constant_override("shadow_offset_y", 1)
 	directive.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	directive.position = Vector2(28, 48)
 	directive.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -62,7 +62,7 @@ func _ready() -> void:
 	toast.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var toast_box := StyleBoxFlat.new()
 	toast_box.bg_color = Color(BG, 0.88)
-	toast_box.border_color = Color("#41627f")
+	toast_box.border_color = Color("#bdccc3")
 	toast_box.set_border_width_all(1)
 	toast_box.set_corner_radius_all(14)
 	toast_box.content_margin_left = 16

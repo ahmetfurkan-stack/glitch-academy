@@ -5,7 +5,7 @@
 
 [sub_resource type="Gradient" id="Gradient_scrim"]
 offsets = PackedFloat32Array(0, 0.42, 0.72, 1)
-colors = PackedColorArray(0.027, 0.041, 0.064, 0.98, 0.027, 0.041, 0.064, 0.88, 0.027, 0.041, 0.064, 0.06, 0.027, 0.041, 0.064, 0)
+colors = PackedColorArray(0.957, 0.965, 0.949, 0.98, 0.957, 0.965, 0.949, 0.90, 0.957, 0.965, 0.949, 0.20, 0.957, 0.965, 0.949, 0)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture_scrim"]
 gradient = SubResource("Gradient_scrim")
@@ -73,7 +73,7 @@ theme_override_constants/separation = 10
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = "SectionLabel"
-theme_override_colors/font_color = Color(0.63, 0.83, 0.78, 1)
+theme_override_colors/font_color = Color(0.23, 0.47, 0.40, 1)
 theme_override_font_sizes/font_size = 15
 text = "KONTROL MERKEZİ"
 
@@ -81,7 +81,7 @@ text = "KONTROL MERKEZİ"
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = "HeadlineLabel"
-theme_override_colors/font_color = Color(0.9, 0.95, 0.94, 1)
+theme_override_colors/font_color = Color(0.13, 0.20, 0.18, 1)
 theme_override_font_sizes/font_size = 46
 text = "Bilginin Kırılması"
 

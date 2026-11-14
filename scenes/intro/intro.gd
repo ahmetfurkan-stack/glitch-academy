@@ -17,8 +17,8 @@ const CAPTIONS := [
 	"Zaman Makinesi kaymanın başladığı ana dönüyor.",
 	"Sapma sürüyor. Onarım senden bekleniyor.",
 ]
-const ACCENT_NORMAL := Color("#87cfc4")
-const ACCENT_ALARM := Color("#e5645a")
+const ACCENT_NORMAL := Color("#3b7867")
+const ACCENT_ALARM := Color("#b85f56")
 const CUE_TOP := -210.0
 const CUE_BOTTOM := -67.0
 const MERIDYEN_TEXTURE := preload("res://assets/characters/meridyen/meridyen_ai_concept.png")
@@ -181,14 +181,14 @@ func _draw() -> void:
 	var impact := 1.0 - smoothstep(2.12, 2.55, elapsed)
 	camera_shift += Vector2(sin(elapsed * 73.0) * h * 0.004, sin(elapsed * 61.0) * h * 0.002) * impact
 	draw_texture_rect(CINEMATIC_BACKDROP, Rect2((size - background_size) * 0.5 + camera_shift, background_size), false)
-	draw_rect(Rect2(Vector2.ZERO, size), Color("#070b12", 0.10), true)
+	draw_rect(Rect2(Vector2.ZERO, size), Color("#f4f6f2", 0.10), true)
 	var center := Vector2(size.x * 0.73, size.y * 0.50)
 	var radius_x := minf(h * 0.25, size.x * 0.29)
 	var radius_y := h * 0.22
 	var disturbance := smoothstep(1.8, 2.4, elapsed)
 	var fault := disturbance * (1.0 - 0.45 * smoothstep(6.4, 7.7, elapsed))
-	_draw_orbit(center, radius_x, radius_y, 0.0, Color("#6fe3c1", 0.36))
-	_draw_orbit(center, radius_x, radius_y, deg_to_rad(11.0) * fault, Color("#e5645a", 0.68 * fault))
+	_draw_orbit(center, radius_x, radius_y, 0.0, Color("#3b7867", 0.42))
+	_draw_orbit(center, radius_x, radius_y, deg_to_rad(11.0) * fault, Color("#b85f56", 0.68 * fault))
 	_draw_tear(center, radius_x, radius_y, fault)
 	_draw_time_rewind(center, maxf(radius_x, radius_y) * 1.10, elapsed)
 
@@ -212,11 +212,11 @@ func _draw_tear(center: Vector2, rx: float, ry: float, fault: float) -> void:
 		var t := float(index) / 8.0
 		var jitter := sin(elapsed * 51.0 + float(index) * 2.7) * 5.0 * fault
 		points.append(start + Vector2(rx * 0.68 * t, ry * 1.25 * t + jitter))
-	draw_polyline(points, Color("#6fe3c1", 0.62 * pulse * fault), 2.0, true)
+	draw_polyline(points, Color("#3b7867", 0.62 * pulse * fault), 2.0, true)
 	var offset_points := PackedVector2Array()
 	for point in points:
 		offset_points.append(point + Vector2(4.0, -1.5))
-	draw_polyline(offset_points, Color("#e5645a", 0.82 * pulse * fault), 1.6, true)
+	draw_polyline(offset_points, Color("#b85f56", 0.82 * pulse * fault), 1.6, true)
 
 
 func _draw_time_rewind(center: Vector2, radius: float, time: float) -> void:
@@ -229,13 +229,13 @@ func _draw_time_rewind(center: Vector2, radius: float, time: float) -> void:
 		var t := float(index) / 48.0
 		var angle := -PI * 0.5 - sweep * t
 		points.append(center + Vector2(cos(angle) * radius, sin(angle) * radius))
-	draw_polyline(points, Color("#6fe3c1", 0.82 * appear), 3.0, true)
+	draw_polyline(points, Color("#3b7867", 0.82 * appear), 3.0, true)
 	var tip_angle := -PI * 0.5 - sweep
 	var tip := center + Vector2(cos(tip_angle), sin(tip_angle)) * radius
 	var tangent := Vector2(sin(tip_angle), -cos(tip_angle))
 	var arrow_back := -tangent * 12.0
 	var arrow_side := Vector2(-arrow_back.y, arrow_back.x).normalized() * 6.0
-	draw_colored_polygon(PackedVector2Array([tip, tip + arrow_back + arrow_side, tip + arrow_back - arrow_side]), Color("#6fe3c1", 0.9 * appear))
+	draw_colored_polygon(PackedVector2Array([tip, tip + arrow_back + arrow_side, tip + arrow_back - arrow_side]), Color("#3b7867", 0.9 * appear))
 
 
 func _finish() -> void:

@@ -273,7 +273,7 @@ func _refresh_list() -> void:
 		var subject := _mission_display_subject(mission)
 		var row_text := _mission_row_text(mission, state_text, marker)
 		var item_index := mission_list.add_item(row_text, _mission_icon(mission))
-		var marker_color := Color("#a0dfbc") if completed else Color("#efb468") if mission.id == recommended_id else Color("#8fa6b3") if not available else Color("#e8f1f2")
+		var marker_color := Color("#53826c") if completed else Color("#c88755") if mission.id == recommended_id else Color("#87958c") if not available else Color("#22332f")
 		mission_list.set_item_custom_fg_color(item_index, marker_color)
 		mission_list.set_item_metadata(item_index, mission.id)
 		var route_label := "Ortak final" if mission.id == &"three_suns" else String(active_route).to_upper()
@@ -779,7 +779,7 @@ func _show_transmission(heading: String, line: String, on_close: Callable = Call
 	var signal_mark := Label.new()
 	signal_mark.text = "◉"
 	signal_mark.add_theme_font_size_override("font_size", 22)
-	signal_mark.add_theme_color_override("font_color", Color("#6fe3c1"))
+	signal_mark.add_theme_color_override("font_color", Color("#3b7867"))
 	signal_mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(signal_mark)
 	var content := VBoxContainer.new()
@@ -789,12 +789,12 @@ func _show_transmission(heading: String, line: String, on_close: Callable = Call
 	var label := Label.new()
 	label.text = heading
 	label.add_theme_font_size_override("font_size", 12)
-	label.add_theme_color_override("font_color", Color("#6fe3c1"))
+	label.add_theme_color_override("font_color", Color("#3b7867"))
 	content.add_child(label)
 	var quote := Label.new()
 	quote.text = line
 	quote.add_theme_font_size_override("font_size", 16)
-	quote.add_theme_color_override("font_color", Color("#e8f1f2"))
+	quote.add_theme_color_override("font_color", Color("#22332f"))
 	quote.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(quote)
 	var close := Button.new()
