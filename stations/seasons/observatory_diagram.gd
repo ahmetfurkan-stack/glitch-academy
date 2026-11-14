@@ -9,6 +9,8 @@ const MUTED := Color("a3b9bf")
 const AQUA := Color("77d2bd")
 const GOLD := Color("f0aa70")
 const ORBIT := Color("557386")
+const EARTH_ALBEDO := preload("res://stations/seasons/assets/earth_albedo_4k.jpg")
+const SUN_PHOTOSPHERE := preload("res://stations/seasons/assets/sun_photosphere_4k.jpg")
 
 var december := false
 var tilt := Model.AXIAL_TILT
@@ -143,13 +145,18 @@ func _build_orbit() -> void:
 
 
 func _build_sun() -> void:
-	var sun := _sphere(0.66, _material(Color("ffd98c"), 0.24, 0.0, 0.12))
+	var sun := _sphere(0.66, _material(Color.WHITE, 0.72, 0.0, 0.12))
 	sun.name = "SunCore"
 	sun.position = Vector3(0.0, 1.55, 0.0)
 	var sun_mat := sun.material_override as StandardMaterial3D
+	sun_mat.albedo_color = Color.WHITE
+	sun_mat.albedo_texture = SUN_PHOTOSPHERE
+	sun_mat.uv1_scale = Vector3(0.35, 0.35, 1.0)
+	sun_mat.uv1_offset = Vector3(0.58, 0.1, 0.0)
 	sun_mat.emission_enabled = true
-	sun_mat.emission = Color("ff9d48")
-	sun_mat.emission_energy_multiplier = 3.5
+	sun_mat.emission = Color("fff4d6")
+	sun_mat.emission_texture = SUN_PHOTOSPHERE
+	sun_mat.emission_energy_multiplier = 0.28
 	world.add_child(sun)
 	for radius in [0.78, 0.9]:
 		var corona := MeshInstance3D.new()
@@ -159,6 +166,7 @@ func _build_sun() -> void:
 		corona.mesh = mesh
 		var material := _material(Color("ffb45f", 0.15 if radius < 0.85 else 0.065), 0.45, 0.0, 0.0)
 		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		material.emission_enabled = true
 		material.emission = Color("fa8e36")
 		material.emission_energy_multiplier = 0.45
@@ -182,28 +190,18 @@ func _build_earth(position: Vector3, marker: String, winter_side: bool) -> void:
 	pivot.name = "AxialTiltRig_%s" % marker.replace(" ", "_")
 	world.add_child(pivot)
 	earths.append(pivot)
-	var globe := _sphere(0.77, _material(Color("174763"), 0.3, 0.18, 0.12))
+	var globe := _sphere(0.77, _material(Color.WHITE, 0.3, 0.0, 0.12))
 	globe.name = "BlueOceanGlobe"
+	var globe_material := globe.material_override as StandardMaterial3D
+	globe_material.albedo_texture = EARTH_ALBEDO
+	globe_material.roughness = 0.78
+	globe_material.metallic = 0.0
 	pivot.add_child(globe)
 	earth_surfaces.append(globe)
-	# Raised stylized continental plates on the camera-facing hemisphere.
-	var land_mat := _material(Color("77a877"), 0.68, 0.0, 0.0)
-	for spec in [
-		Vector3(-0.24, 0.32, 0.63), Vector3(-0.35, 0.13, 0.65), Vector3(-0.14, -0.02, 0.7),
-		Vector3(0.12, 0.26, 0.66), Vector3(0.29, 0.12, 0.65), Vector3(0.23, -0.13, 0.69),
-		Vector3(-0.16, -0.3, 0.62), Vector3(0.08, -0.39, 0.62), Vector3(0.38, -0.31, 0.53),
-	]:
-		var plate := _sphere(0.15, land_mat)
-		plate.position = spec
-		plate.scale = Vector3(1.0, 1.18, 0.24)
-		plate.name = "RaisedContinentalPlate"
-		pivot.add_child(plate)
-	# Polar caps and a metallic axial rod move with the globe's 23.4-degree axis.
-	for sign in [-1.0, 1.0]:
-		var cap := _sphere(0.105, _material(Color("d7e7df"), 0.44, 0.0, 0.0))
-		cap.position.y = sign * 0.74
-		cap.name = "PolarIceCap"
-		pivot.add_child(cap)
+	# Dense sphere tessellation keeps the high-resolution surface smooth at close range.
+	var earth_mesh := globe.mesh as SphereMesh
+	earth_mesh.radial_segments = 96
+	earth_mesh.rings = 64
 	var axis := MeshInstance3D.new()
 	var rod := CylinderMesh.new()
 	rod.top_radius = 0.018
@@ -444,8 +442,8 @@ func _sphere(radius: float, material: Material) -> MeshInstance3D:
 	var mesh := SphereMesh.new()
 	mesh.radius = radius
 	mesh.height = radius * 2.0
-	mesh.radial_segments = 32
-	mesh.rings = 20
+	mesh.radial_segments = 48
+	mesh.rings = 32
 	instance.mesh = mesh
 	instance.material_override = material
 	return instance
